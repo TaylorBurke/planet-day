@@ -22,4 +22,8 @@ xcodegen generate
 open PlanetDay.xcodeproj
 ```
 
-Run the PlanetDay scheme on a watchOS simulator or device, then add "Planet of the Day" from the watch face editor.
+Run the **PlanetDayWatch** scheme on a watchOS simulator or device, then add "Planet of the Day" from the watch face editor. Run its tests with ⌘U.
+
+## Release
+
+Archive the **PlanetDay** scheme (the iOS container that wraps the watch-only app, as the App Store requires) with the destination set to **Any iOS Device**, then use Distribute App → App Store Connect in the Organizer.
