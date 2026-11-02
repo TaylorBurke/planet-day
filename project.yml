@@ -3,6 +3,7 @@ options:
   bundleIdPrefix: com.taylorburke
   deploymentTarget:
     watchOS: "10.0"
+    iOS: "17.0"
 settings:
   base:
     SWIFT_VERSION: "5.0"
@@ -11,13 +12,27 @@ settings:
     DEVELOPMENT_TEAM: 5LB2Q93R38
     CODE_SIGN_STYLE: Automatic
 targets:
+  # Codeless iOS wrapper the App Store requires around a watch-only app (same shape
+  # as Xcode's watch-only template). This is the target you archive and upload.
   PlanetDay:
+    type: application.watchapp2-container
+    platform: iOS
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.taylorburke.PlanetDay
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Planet of the Day
+        INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
+    dependencies:
+      - target: PlanetDayWatch
+  PlanetDayWatch:
     type: application
     platform: watchOS
     sources: [App, Shared]
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.taylorburke.PlanetDay
+        PRODUCT_BUNDLE_IDENTIFIER: com.taylorburke.PlanetDay.watchkitapp
+        PRODUCT_MODULE_NAME: PlanetDay
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_WKWatchOnly: YES
         INFOPLIST_KEY_CFBundleDisplayName: Planet of the Day
@@ -31,7 +46,7 @@ targets:
     sources: [Widget, Shared]
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.taylorburke.PlanetDay.Widget
+        PRODUCT_BUNDLE_IDENTIFIER: com.taylorburke.PlanetDay.watchkitapp.Widget
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Planet of the Day
     info:
@@ -47,11 +62,19 @@ targets:
     platform: watchOS
     sources: [Tests]
     dependencies:
-      - target: PlanetDay
+      - target: PlanetDayWatch
 schemes:
   PlanetDay:
     build:
       targets:
         PlanetDay: all
+    archive:
+      config: Release
+  PlanetDayWatch:
+    build:
+      targets:
+        PlanetDayWatch: all
+    run:
+      config: Debug
     test:
       targets: [PlanetDayTests]
