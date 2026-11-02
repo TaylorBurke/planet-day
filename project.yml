@@ -1,6 +1,6 @@
 name: PlanetDay
 options:
-  bundleIdPrefix: com.example
+  bundleIdPrefix: com.taylorburke
   deploymentTarget:
     watchOS: "10.0"
 settings:
@@ -8,29 +8,50 @@ settings:
     SWIFT_VERSION: "5.0"
     MARKETING_VERSION: "1.0"
     CURRENT_PROJECT_VERSION: "1"
+    DEVELOPMENT_TEAM: 5LB2Q93R38
+    CODE_SIGN_STYLE: Automatic
 targets:
   PlanetDay:
     type: application
     platform: watchOS
-    sources: [App]
+    sources: [App, Shared]
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.example.PlanetDay
+        PRODUCT_BUNDLE_IDENTIFIER: com.taylorburke.PlanetDay
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_WKWatchOnly: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Planet of the Day
+        INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
     dependencies:
       - target: PlanetDayWidget
   PlanetDayWidget:
     type: app-extension
     platform: watchOS
-    sources: [Widget]
+    sources: [Widget, Shared]
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.example.PlanetDay.Widget
+        PRODUCT_BUNDLE_IDENTIFIER: com.taylorburke.PlanetDay.Widget
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Planet of the Day
     info:
       path: Widget/Info.plist
       properties:
+        # Must match the app's versions or App Store Connect rejects the upload.
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
+  PlanetDayTests:
+    type: bundle.unit-test
+    platform: watchOS
+    sources: [Tests]
+    dependencies:
+      - target: PlanetDay
+schemes:
+  PlanetDay:
+    build:
+      targets:
+        PlanetDay: all
+    test:
+      targets: [PlanetDayTests]

@@ -1,22 +1,11 @@
 import WidgetKit
 import SwiftUI
 
-// Classical planetary rulers of the days of the week.
-// "\u{FE0E}" forces text (not emoji) presentation for ♀ ♂ ☿ etc.
-private let planetSymbols: [Int: (symbol: String, name: String)] = [
-    1: ("☉\u{FE0E}", "SUN"),      // Sunday
-    2: ("☽\u{FE0E}", "MON"),     // Monday
-    3: ("♂\u{FE0E}", "TUE"),     // Tuesday
-    4: ("☿\u{FE0E}", "WED"),  // Wednesday
-    5: ("♃\u{FE0E}", "THU"),  // Thursday
-    6: ("♀\u{FE0E}", "FRI"),    // Friday
-    7: ("♄\u{FE0E}", "SAT"),   // Saturday
-]
-
 struct DayEntry: TimelineEntry {
     let date: Date
-    var symbol: String { planetSymbols[Calendar.current.component(.weekday, from: date)]!.symbol }
-    var name: String { planetSymbols[Calendar.current.component(.weekday, from: date)]!.name }
+    private var planet: Planet { Planet.ruling(date) }
+    var symbol: String { planet.symbol }
+    var name: String { planet.dayAbbreviation }
 }
 
 struct Provider: TimelineProvider {
