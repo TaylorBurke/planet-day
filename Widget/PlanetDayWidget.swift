@@ -36,13 +36,13 @@ struct PlanetDayView: View {
             Text("\(entry.symbol) \(entry.name)")
         case .accessoryRectangular:
             HStack {
-                Text(entry.symbol).font(.system(size: 40))
+                FilledSymbol(symbol: entry.symbol)
+                    .aspectRatio(1, contentMode: .fit)
                 Text(entry.name).font(.headline)
+                Spacer(minLength: 0)
             }
         default: // circular, corner
-            Text(entry.symbol)
-                .font(.system(size: 32, weight: .regular))
-                .minimumScaleFactor(0.5)
+            FilledSymbol(symbol: entry.symbol)
                 .widgetLabel(entry.name)
         }
     }
