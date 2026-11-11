@@ -27,6 +27,10 @@ struct FilledSymbol: View {
 }
 
 /// Font size and offset that center a string's glyph outline and make its farthest point reach `targetRadius`.
+///
+/// Both values scale linearly with the radius, so they're stored per unit radius. The seven
+/// planet symbols come from `precomputed`, so rendering a complication does no CoreText work;
+/// anything else is measured on demand.
 struct GlyphLayout {
     /// Measuring and drawing must use the same font. The system font lacks these glyphs,
     /// and CoreText and SwiftUI choose different fallbacks, so name one that has all seven.
@@ -35,10 +39,36 @@ struct GlyphLayout {
     /// Max deviation, in points at the reference size, when flattening glyph curves into lines.
     private static let flatteningThreshold: CGFloat = 0.1
 
+    /// Unit-radius layouts for every `Planet.all` symbol, measured from `fontName`.
+    /// `GlyphLayoutTests` re-measures these and prints replacement lines if they drift.
+    static let precomputed: [String: GlyphLayout] = [
+        "☉\u{FE0E}": GlyphLayout(fontSize: 3.453836, offset: CGSize(width: 0.038788, height: 0.270674)), // Sun
+        "☽\u{FE0E}": GlyphLayout(fontSize: 3.052591, offset: CGSize(width: 0.060366, height: 0.231031)), // Moon
+        "♂\u{FE0E}": GlyphLayout(fontSize: 2.409572, offset: CGSize(width: 0.012942, height: 0.204131)), // Mars
+        "☿\u{FE0E}": GlyphLayout(fontSize: 2.472644, offset: CGSize(width: 0.007244, height: 0.141863)), // Mercury
+        "♃\u{FE0E}": GlyphLayout(fontSize: 2.242412, offset: CGSize(width: 0.016424, height: 0.128107)), // Jupiter
+        "♀\u{FE0E}": GlyphLayout(fontSize: 2.769259, offset: CGSize(width: 0.016226, height: 0.148739)), // Venus
+        "♄\u{FE0E}": GlyphLayout(fontSize: 2.893045, offset: CGSize(width: 0.045910, height: 0.311483)), // Saturn
+    ]
+
     let fontSize: CGFloat
     let offset: CGSize
 
+    init(fontSize: CGFloat, offset: CGSize) {
+        self.fontSize = fontSize
+        self.offset = offset
+    }
+
     init(symbol: String, targetRadius: CGFloat) {
+        let unit = Self.precomputed[symbol] ?? Self.measureUnitLayout(of: symbol)
+        self.init(
+            fontSize: unit.fontSize * targetRadius,
+            offset: CGSize(width: unit.offset.width * targetRadius, height: unit.offset.height * targetRadius)
+        )
+    }
+
+    /// Measures `symbol`'s glyph outline with CoreText and returns its layout for a radius of 1.
+    static func measureUnitLayout(of symbol: String) -> GlyphLayout {
         let font = CTFontCreateWithName(Self.fontName as CFString, Self.referenceFontSize, nil)
         let attributes: [NSAttributedString.Key: Any] = [
             NSAttributedString.Key(kCTFontAttributeName as String): font as Any,
@@ -53,17 +83,17 @@ struct GlyphLayout {
             .max() ?? 0
 
         guard outlineRadius > 0 else {
-            fontSize = targetRadius * 2
-            offset = .zero
-            return
+            return GlyphLayout(fontSize: 2, offset: .zero)
         }
 
-        let scale = targetRadius / outlineRadius
-        fontSize = Self.referenceFontSize * scale
+        let scale = 1 / outlineRadius
         // CoreText's y axis points up and SwiftUI's points down, hence the sign flip on y.
-        offset = CGSize(
-            width: (lineBounds.midX - glyphBounds.midX) * scale,
-            height: (glyphBounds.midY - lineBounds.midY) * scale
+        return GlyphLayout(
+            fontSize: Self.referenceFontSize * scale,
+            offset: CGSize(
+                width: (lineBounds.midX - glyphBounds.midX) * scale,
+                height: (glyphBounds.midY - lineBounds.midY) * scale
+            )
         )
     }
 
